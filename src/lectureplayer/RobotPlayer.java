@@ -114,6 +114,11 @@ public strictfp class RobotPlayer {
         // Pick a direction to build in.
         Direction dir = directions[rng.nextInt(directions.length)];
         MapLocation newLoc = rc.getLocation().add(dir);
+        if (turnCount == 1) {
+            Communication.addHeadquarter(rc);
+        } else if (turnCount == 2) {
+            Communication.updateHeadquarterInfo(rc);
+        }
         if (rc.canBuildAnchor(Anchor.STANDARD) && rc.getResourceAmount(ResourceType.ADAMANTIUM) > 100) {
             // If we can build an anchor do it!
             rc.buildAnchor(Anchor.STANDARD);
@@ -132,6 +137,8 @@ public strictfp class RobotPlayer {
                 rc.buildRobot(RobotType.LAUNCHER, newLoc);
             }
         }
+        Communication.tryWriteMessages(rc);
+
     }
 
     static void moveRandom(RobotController rc) throws GameActionException {
@@ -144,4 +151,5 @@ public strictfp class RobotPlayer {
         if(rc.canMove(dir)) rc.move(dir);
         else moveRandom(rc);
     }
+
 }

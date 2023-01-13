@@ -16,8 +16,13 @@ public class LauncherStrategy {
         int lowestHealth = 100;
         int smallestDistance = 100;
         RobotInfo target = null;
+        if (RobotPlayer.turnCount == 2) {
+            Communication.updateHeadquarterInfo(rc);
+        }
+        Communication.clearObsoleteEnemies(rc);
         if (enemies.length > 0) {
             for (RobotInfo enemy: enemies){
+                Communication.reportEnemy(rc, enemy.location);
                 int enemyHealth = enemy.getHealth();
                 int enemyDistance = enemy.getLocation().distanceSquaredTo(rc.getLocation());
                 if (enemyHealth < lowestHealth){
@@ -33,6 +38,7 @@ public class LauncherStrategy {
                 }
             }
         }
+        Communication.tryWriteMessages(rc);
         if (target != null){
             if (rc.canAttack(target.getLocation()))
                 rc.attack(target.getLocation());

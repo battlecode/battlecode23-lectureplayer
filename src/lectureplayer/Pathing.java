@@ -11,7 +11,7 @@ public class Pathing {
         if (rc.getLocation().equals(target)) {
             return;
         }
-        if (!rc.isActionReady()) {
+        if (!rc.isMovementReady()) {
             return;
         }
         Direction d = rc.getLocation().directionTo(target);

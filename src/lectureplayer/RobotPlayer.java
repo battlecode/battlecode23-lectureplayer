@@ -55,10 +55,13 @@ public strictfp class RobotPlayer {
 
         // Hello world! Standard output is very useful for debugging.
         // Everything you say here will be directly viewable in your terminal when you run a match!
-        System.out.println("I'm a " + rc.getType() + " and I just got created! I have health " + rc.getHealth());
+      //  System.out.println("I'm a " + rc.getType() + " and I just got created! I have health " + rc.getHealth());
 
         // You can also use indicators to save debug notes in replays.
         rc.setIndicatorString("Hello world!");
+        if (rc.getTeam() == Team.A) {
+            rng.nextInt();
+        }
 
         while (true) {
             // This code runs during the entire lifespan of the robot, which is why it is in an infinite
@@ -132,10 +135,22 @@ public strictfp class RobotPlayer {
             }
         } else {
             // Let's try to build a launcher.
-            rc.setIndicatorString("Trying to build a launcher");
-            if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
-                rc.buildRobot(RobotType.LAUNCHER, newLoc);
+            if (rc.getActionCooldownTurns() != 0 || rc.getResourceAmount(ResourceType.MANA) < 5 * RobotType.LAUNCHER.buildCostMana)
+                return;
+            int attempts = 0;
+            int numPlaced = 0;
+            while (numPlaced != 5 && attempts != 30){
+                attempts++;
+                if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
+                    rc.buildRobot(RobotType.LAUNCHER, newLoc);
+                    numPlaced++;
+                }
+                else{
+                     dir = directions[rng.nextInt(directions.length)];
+                    newLoc = rc.getLocation().add(dir);
+                }
             }
+            rc.setIndicatorString("Trying to build a launcher");
         }
         Communication.tryWriteMessages(rc);
 

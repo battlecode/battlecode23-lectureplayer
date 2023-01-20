@@ -13,16 +13,16 @@ public class LauncherStrategy {
         int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
         RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
-        int lowestHealth = 100;
+        int lowestHealth = 1000;
         int smallestDistance = 100;
         RobotInfo target = null;
         if (RobotPlayer.turnCount == 2) {
             Communication.updateHeadquarterInfo(rc);
         }
-        Communication.clearObsoleteEnemies(rc);
+     //   Communication.clearObsoleteEnemies(rc);
         if (enemies.length > 0) {
             for (RobotInfo enemy: enemies){
-                Communication.reportEnemy(rc, enemy.location);
+         //       Communication.reportEnemy(rc, enemy.location);
                 int enemyHealth = enemy.getHealth();
                 int enemyDistance = enemy.getLocation().distanceSquaredTo(rc.getLocation());
                 if (enemyHealth < lowestHealth){
@@ -38,33 +38,35 @@ public class LauncherStrategy {
                 }
             }
         }
-        Communication.tryWriteMessages(rc);
+     //   Communication.tryWriteMessages(rc);
         if (target != null){
             if (rc.canAttack(target.getLocation()))
                 rc.attack(target.getLocation());
+            Pathing.moveTowards(rc, target.getLocation());
         }
         else {
-           
-            WellInfo[] wells = rc.senseNearbyWells();
-            if (wells.length > 0){
-                MapLocation wellLoc = wells[0].getMapLocation();
-                Direction dir = rc.getLocation().directionTo(wellLoc);
-                if (rc.canMove(dir))
-                    rc.move(dir);
+            RobotInfo[] allies = rc.senseNearbyRobots(9, rc.getTeam());
+            int lowestID = rc.getID();
+            MapLocation leaderPos = null;
+            for (RobotInfo ally : allies){
+                if (ally.getType() != RobotType.LAUNCHER)
+                    continue;
+                if (ally.getID() < lowestID){
+                    lowestID = ally.getID();
+                    leaderPos = ally.getLocation();
+                }
+            }
+            if (leaderPos != null){
+                Pathing.moveTowards(rc, leaderPos);
+                rc.setIndicatorString("Following " + lowestID);
+            }
+            else{
+                MapLocation center = new MapLocation(rc.getMapWidth()/2, rc.getMapHeight()/2);
+                Pathing.moveTowards(rc, center);
+                rc.setIndicatorString("I'm the leader!");
             }
         }
 
-        RobotInfo[] visibleEnemies = rc.senseNearbyRobots(-1, opponent);
-        for (RobotInfo enemy : visibleEnemies) {
-        	if (enemy.getType() != RobotType.HEADQUARTERS) {
-        		MapLocation enemyLocation = enemy.getLocation();
-        		MapLocation robotLocation = rc.getLocation();
-        		Direction moveDir = robotLocation.directionTo(enemyLocation);
-        		if (rc.canMove(moveDir)) {
-        			rc.move(moveDir);
-        		}
-        	}
-        }
         
         // Also try to move randomly.
         Direction dir = RobotPlayer.directions[RobotPlayer.rng.nextInt(RobotPlayer.directions.length)];
